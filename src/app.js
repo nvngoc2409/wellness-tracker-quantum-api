@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from "./routes/auth.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import albumRoutes from "./routes/album.routes.js";
+import insightRoutes from "./routes/insight.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import wellnessRoutes from "./routes/wellness.routes.js";
 
@@ -31,5 +32,6 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/wellness", wellnessRoutes);
+app.use("/api/insight", insightRoutes);
 
 export default app;
