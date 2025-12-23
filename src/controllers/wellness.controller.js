@@ -1,5 +1,6 @@
 const DailyWellness = require('../models/dailyWellness.model.js');
 const Album = require('../models/album.model.js');
+const Category = require('../models/category.model.js');
 
 // Helper: format Date object to YYYY-MM-DD string
 function formatDateToYMD(d) {
@@ -7,6 +8,73 @@ function formatDateToYMD(d) {
   const month = `${d.getMonth() + 1}`.padStart(2, '0');
   const day = `${d.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+// Attach categories to album objects (mutates album objects)
+async function attachCategoriesToAlbums(albums) {
+  if (!albums) return albums;
+  const arr = Array.isArray(albums) ? albums : [albums];
+
+  // collect subcategory ids
+  const subIds = new Set();
+  for (const a of arr) {
+    if (!a) continue;
+    const album = a.toObject ? a.toObject() : a;
+    if (Array.isArray(album.subcategories)) {
+      for (const s of album.subcategories) {
+        if (!s) continue;
+        const sub = s.subcategory || s;
+        const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : (sub ? sub.toString() : null);
+        if (sid) subIds.add(sid);
+      }
+    }
+  }
+
+  if (subIds.size === 0) {
+    // ensure categories array exists
+    for (const a of arr) {
+      if (a) a.categories = [];
+    }
+    return Array.isArray(albums) ? arr : arr[0];
+  }
+
+  const subIdList = Array.from(subIds);
+  const categories = await Category.find({ 'subcategories.subcategory': { $in: subIdList } })
+    .populate({ path: 'subcategories.subcategory', select: 'name' })
+    .lean();
+
+  const subToCategory = {};
+  for (const c of categories) {
+    if (!Array.isArray(c.subcategories)) continue;
+    for (const s of c.subcategories) {
+      if (!s || !s.subcategory) continue;
+      const sid = (typeof s.subcategory === 'object' && s.subcategory._id) ? s.subcategory._id.toString() : s.subcategory.toString();
+      if (!subToCategory[sid]) subToCategory[sid] = { _id: c._id, name: c.name, cover_image: c.cover_image, description: c.description };
+    }
+  }
+
+  for (const a of arr) {
+    if (!a) continue;
+    const album = a.toObject ? a.toObject() : a;
+    const catSet = {};
+    const cats = [];
+    if (Array.isArray(album.subcategories)) {
+      for (const s of album.subcategories) {
+        if (!s) continue;
+        const sub = s.subcategory || s;
+        const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : (sub ? sub.toString() : null);
+        const cat = sid ? subToCategory[sid] : null;
+        if (cat && !catSet[cat._id.toString()]) {
+          catSet[cat._id.toString()] = true;
+          cats.push(cat);
+        }
+      }
+    }
+    // attach categories array to original object
+    a.categories = cats;
+  }
+
+  return Array.isArray(albums) ? arr : arr[0];
 }
 
 /**
@@ -113,6 +181,11 @@ exports.createWellnessLog = async (req, res) => {
     // If we don't yet have returnedAlbum (e.g., selected by id earlier), fetch it
     if (!returnedAlbum && dailyLog.album) {
       returnedAlbum = await Album.findById(dailyLog.album).lean();
+    }
+
+    // attach categories to returned album
+    if (returnedAlbum) {
+      await attachCategoriesToAlbums(returnedAlbum);
     }
 
     return res.status(200).json({ success: true, data: returnedAlbum || null });
@@ -258,13 +331,27 @@ exports.getWellness = async (req, res) => {
     })
       .sort({ date: 'asc' });
 
+    let trends;
     if (isSameDate) {
-      query = query.select('date logs album').populate({ path: 'album', select: '_id name cover_image description tracks subcategories' });
+      query = query.select('date logs album').populate({ path: 'album', select: '_id name cover_image description tracks subcategories' }).lean();
     } else {
-      query = query.select('date logs');
+      query = query.select('date logs').lean();
     }
 
-    const trends = await query.exec();
+    trends = await query.exec();
+
+    // If single-date request, attach categories to each populated album object
+    if (isSameDate) {
+      // collect album objects from trends (if album populated)
+      const albumObjs = [];
+      for (const t of trends) {
+        if (t.album) albumObjs.push(t.album);
+      }
+      if (albumObjs.length) {
+        // attachCategoriesToAlbums mutates objects in-place
+        await attachCategoriesToAlbums(albumObjs);
+      }
+    }
 
     res.status(200).json({
       success: true,

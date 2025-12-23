@@ -1,6 +1,7 @@
 const Insight = require('../models/insight.model.js');
 const Album = require('../models/album.model.js');
 const mongoose = require('mongoose');
+const Category = require('../models/category.model.js');
 
 // Helper to format Date object to YYYY-MM-DD
 function formatDateToYMD(d) {
@@ -45,7 +46,58 @@ exports.getInsight = async (req, res) => {
     let existing = await Insight.findOne({ user_id: userId, date: targetDate }).populate('albums');
 
     if (existing) {
-      return res.status(200).json({ success: true, data: existing.albums });
+      // attach categories to each album before returning
+      const albumsRaw = existing.albums.map(a => a.toObject ? a.toObject() : a);
+      // collect subcategory ids
+      const subIds = new Set();
+      for (const a of albumsRaw) {
+        if (Array.isArray(a.subcategories)) {
+          for (const s of a.subcategories) {
+            if (!s) continue;
+            const sub = s.subcategory || s;
+            const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : sub.toString();
+            subIds.add(sid);
+          }
+        }
+      }
+
+      let categories = [];
+      if (subIds.size) {
+        const subIdList = Array.from(subIds);
+        categories = await Category.find({ 'subcategories.subcategory': { $in: subIdList } })
+          .populate({ path: 'subcategories.subcategory', select: 'name' })
+          .lean();
+      }
+
+      // build map sub -> category
+      const subToCategory = {};
+      for (const c of categories) {
+        if (!Array.isArray(c.subcategories)) continue;
+        for (const s of c.subcategories) {
+          if (!s || !s.subcategory) continue;
+          const sid = (typeof s.subcategory === 'object' && s.subcategory._id) ? s.subcategory._id.toString() : s.subcategory.toString();
+          if (!subToCategory[sid]) subToCategory[sid] = { _id: c._id, name: c.name, cover_image: c.cover_image, description: c.description };
+        }
+      }
+
+      for (const a of albumsRaw) {
+        const catSet = {};
+        a.categories = [];
+        if (Array.isArray(a.subcategories)) {
+          for (const s of a.subcategories) {
+            if (!s) continue;
+            const sub = s.subcategory || s;
+            const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : sub.toString();
+            const cat = subToCategory[sid];
+            if (cat && !catSet[cat._id.toString()]) {
+              catSet[cat._id.toString()] = true;
+              a.categories.push(cat);
+            }
+          }
+        }
+      }
+
+      return res.status(200).json({ success: true, data: albumsRaw });
     }
 
     // 2) Get latest user's insight before the requested date to exclude its albums
@@ -74,6 +126,55 @@ exports.getInsight = async (req, res) => {
     // Ensure we have up to 3 unique albums
     const finalAlbums = sampled.slice(0, 3);
 
+    // attach categories to each album
+    const albumsRaw = finalAlbums.map(a => a.toObject ? a.toObject() : a);
+    const subIds = new Set();
+    for (const a of albumsRaw) {
+      if (Array.isArray(a.subcategories)) {
+        for (const s of a.subcategories) {
+          if (!s) continue;
+          const sub = s.subcategory || s;
+          const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : sub.toString();
+          subIds.add(sid);
+        }
+      }
+    }
+
+    let categories = [];
+    const subIdList = Array.from(subIds);
+    if (subIdList.length) {
+      categories = await Category.find({ 'subcategories.subcategory': { $in: subIdList } })
+        .populate({ path: 'subcategories.subcategory', select: 'name' })
+        .lean();
+    }
+
+    const subToCategory = {};
+    for (const c of categories) {
+      if (!Array.isArray(c.subcategories)) continue;
+      for (const s of c.subcategories) {
+        if (!s || !s.subcategory) continue;
+        const sid = (typeof s.subcategory === 'object' && s.subcategory._id) ? s.subcategory._id.toString() : s.subcategory.toString();
+        if (!subToCategory[sid]) subToCategory[sid] = { _id: c._id, name: c.name, cover_image: c.cover_image, description: c.description };
+      }
+    }
+
+    for (const a of albumsRaw) {
+      const catSet = {};
+      a.categories = [];
+      if (Array.isArray(a.subcategories)) {
+        for (const s of a.subcategories) {
+          if (!s) continue;
+          const sub = s.subcategory || s;
+          const sid = (typeof sub === 'object' && sub._id) ? sub._id.toString() : sub.toString();
+          const cat = subToCategory[sid];
+          if (cat && !catSet[cat._id.toString()]) {
+            catSet[cat._id.toString()] = true;
+            a.categories.push(cat);
+          }
+        }
+      }
+    }
+
     // Save insight record
     const albumIds = finalAlbums.map(a => a._id);
 
@@ -85,7 +186,7 @@ exports.getInsight = async (req, res) => {
 
     await newInsight.save();
 
-    return res.status(200).json({ success: true, data: finalAlbums });
+    return res.status(200).json({ success: true, data: albumsRaw });
 
   } catch (error) {
     console.error(error);
