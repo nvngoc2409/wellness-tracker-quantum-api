@@ -23,7 +23,7 @@ exports.authMiddleware = async (req, res, next) => {
         req.user = await userModel.create({ deviceId: deviceId });
       } catch (err) {
         console.error('Error creating user for deviceId', deviceId, err);
-        return res.status(500).json({ success: false, error: 'Server Error', detail: err.message });
+        return res.status(500).json({ success: false, error: 'Server Error' });
       }
     }
 
