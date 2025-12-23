@@ -1,4 +1,5 @@
 const DailyWellness = require('../models/dailyWellness.model.js');
+const Album = require('../models/album.model.js');
 
 // Helper: format Date object to YYYY-MM-DD string
 function formatDateToYMD(d) {
@@ -37,24 +38,61 @@ exports.createWellnessLog = async (req, res) => {
   targetDateObj.setHours(0, 0, 0, 0);
   const targetDate = formatDateToYMD(targetDateObj);
 
-  console.info('Target date for wellness log (string):', targetDate);
-
   try {
     const userId = req.user.id;
 
     // If a record for this user+date exists, update it (replace logs with provided values)
     let dailyLog = await DailyWellness.findOne({ user: userId, date: targetDate });
 
+    // helper to sample one album (optionally exclude id)
+    const sampleAlbum = async (excludeId) => {
+      try {
+        const match = excludeId ? { _id: { $nin: [excludeId] } } : {};
+        const sampled = await Album.aggregate([
+          { $match: match },
+          { $sample: { size: 1 } }
+        ]);
+        return (sampled && sampled.length) ? sampled[0] : null;
+      } catch (e) {
+        return null;
+      }
+    };
+
+    let returnedAlbum = null;
+
     if (dailyLog) {
+      // compare with previous entry (last log) to see if metrics differ
+      const prev = (dailyLog.logs && dailyLog.logs.length) ? dailyLog.logs[dailyLog.logs.length - 1] : null;
+      const isDifferent = prev
+        ? (prev.mood !== mood || prev.energy !== energy || prev.stress !== stress || prev.sleep !== sleep || dailyLog.album == null)
+        : true;
+
+      if (isDifferent) {
+        // choose a different album than stored (if any)
+        const sampled = await sampleAlbum(dailyLog.album);
+        if (sampled) {
+          dailyLog.album = sampled._id;
+          returnedAlbum = sampled;
+        }
+      } else {
+        // same metrics, keep existing album
+        if (dailyLog.album) returnedAlbum = await Album.findById(dailyLog.album).lean();
+      }
+
       // Replace logs with the single provided entry and recalc averages
       dailyLog.logs = [{ mood, energy, stress, sleep }];
       dailyLog.logCount = 1;
     } else {
+      // create new dailyLog and randomize an album
+      const sampled = await sampleAlbum();
+      if (sampled) returnedAlbum = sampled;
+
       dailyLog = new DailyWellness({
         user: userId,
         date: targetDate,
         logs: [{ mood, energy, stress, sleep }],
-        logCount: 1
+        logCount: 1,
+        album: sampled ? sampled._id : null
       });
     }
 
@@ -72,7 +110,12 @@ exports.createWellnessLog = async (req, res) => {
 
     await dailyLog.save();
 
-    return res.status(200).json({ success: true });
+    // If we don't yet have returnedAlbum (e.g., selected by id earlier), fetch it
+    if (!returnedAlbum && dailyLog.album) {
+      returnedAlbum = await Album.findById(dailyLog.album).lean();
+    }
+
+    return res.status(200).json({ success: true, data: returnedAlbum || null });
 
   } catch (error) {
     console.error(error);

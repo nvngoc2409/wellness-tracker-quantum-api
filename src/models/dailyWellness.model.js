@@ -51,11 +51,16 @@ const dailyWellnessSchema = new Schema({
     stress: { type: Number, default: 0 },
     sleep: { type: Number, default: 0 }
   },
+  album: {
+    type: Schema.Types.ObjectId,
+    ref: 'Album',
+    default: null
+  },
   logCount: {
     type: Number,
     default: 0,
     max: 3
-  }
+  },
 }, {
   timestamps: true
 });
