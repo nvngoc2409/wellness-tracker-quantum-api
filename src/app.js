@@ -11,8 +11,6 @@ import albumRoutes from "./routes/album.routes.js";
 import insightRoutes from "./routes/insight.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import wellnessRoutes from "./routes/wellness.routes.js";
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swagger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,9 +33,5 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/wellness", wellnessRoutes);
 app.use("/api/insight", insightRoutes);
-
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 
 export default app;
