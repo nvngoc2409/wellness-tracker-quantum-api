@@ -5,7 +5,7 @@ const { default: userModel } = require('../models/user.model.js');
 
 exports.authMiddleware = async (req, res, next) => {
   let token;
-  let deviceId = req.headers['device-id'];
+  let deviceId = req.headers['x-device'];
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1]; // Lấy phần token
