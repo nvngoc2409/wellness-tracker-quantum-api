@@ -1,62 +1,82 @@
 const DailyWellness = require('../models/dailyWellness.model.js');
 
+// Helper: format Date object to YYYY-MM-DD string
+function formatDateToYMD(d) {
+  const year = d.getFullYear();
+  const month = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * @desc   
  * @route   POST /api/wellness/
  * @access  Private
  */
 exports.createWellnessLog = async (req, res) => {
-  const { mood, energy, stress, sleep } = req.body;
+  const { mood, energy, stress, sleep, date } = req.body;
 
-  if (mood === undefined || energy === undefined || stress === undefined || sleep === undefined) {
-    return res.status(400).json({ success: false, error: 'Please provide all wellness metrics' });
+  if (mood === undefined || energy === undefined || stress === undefined || sleep === undefined || !date) {
+    return res.status(400).json({ success: false, error: 'Please provide date and all wellness metrics' });
   }
+
+  // expect date in YYYY-MM-DD
+  const parts = String(date).split('-');
+  if (parts.length !== 3) {
+    return res.status(400).json({ success: false, error: 'Invalid date format. Use YYYY-MM-DD' });
+  }
+
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return res.status(400).json({ success: false, error: 'Invalid date parts' });
+  }
+
+  const targetDateObj = new Date(year, month, day);
+  targetDateObj.setHours(0, 0, 0, 0);
+  const targetDate = formatDateToYMD(targetDateObj);
+
+  console.info('Target date for wellness log (string):', targetDate);
 
   try {
     const userId = req.user.id;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    let dailyLog = await DailyWellness.findOne({ user: userId, date: today });
+    // If a record for this user+date exists, update it (replace logs with provided values)
+    let dailyLog = await DailyWellness.findOne({ user: userId, date: targetDate });
 
     if (dailyLog) {
-      if (dailyLog.logCount >= 3) {
-        return res.status(400).json({ success: false, error: 'Maximum of 3 logs per day reached' });
-      }
-      dailyLog.logs.push({ mood, energy, stress, sleep });
+      // Replace logs with the single provided entry and recalc averages
+      dailyLog.logs = [{ mood, energy, stress, sleep }];
+      dailyLog.logCount = 1;
     } else {
       dailyLog = new DailyWellness({
         user: userId,
-        date: today,
-        logs: [{ mood, energy, stress, sleep }]
+        date: targetDate,
+        logs: [{ mood, energy, stress, sleep }],
+        logCount: 1
       });
     }
 
-    dailyLog.logCount = dailyLog.logs.length;
+    // Recalculate averages
+    const totalMood = dailyLog.logs.reduce((s, l) => s + l.mood, 0);
+    const totalEnergy = dailyLog.logs.reduce((s, l) => s + l.energy, 0);
+    const totalStress = dailyLog.logs.reduce((s, l) => s + l.stress, 0);
+    const totalSleep = dailyLog.logs.reduce((s, l) => s + l.sleep, 0);
 
-    let totalMood = 0, totalEnergy = 0, totalStress = 0, totalSleep = 0;
-    for (const log of dailyLog.logs) {
-      totalMood += log.mood;
-      totalEnergy += log.energy;
-      totalStress += log.stress;
-      totalSleep += log.sleep;
-    }
-
-    dailyLog.averages.mood = totalMood / dailyLog.logCount;
-    dailyLog.averages.energy = totalEnergy / dailyLog.logCount;
-    dailyLog.averages.stress = totalStress / dailyLog.logCount;
-    dailyLog.averages.sleep = totalSleep / dailyLog.logCount;
+    const count = dailyLog.logCount || dailyLog.logs.length || 1;
+    dailyLog.averages.mood = totalMood / count;
+    dailyLog.averages.energy = totalEnergy / count;
+    dailyLog.averages.stress = totalStress / count;
+    dailyLog.averages.sleep = totalSleep / count;
 
     await dailyLog.save();
 
-    res.status(201).json({
-      success: true,
-      data: dailyLog
-    });
+    return res.status(200).json({ success: true });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server Error' });
+    return res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
 
@@ -75,8 +95,9 @@ exports.editWellnessLog = async (req, res) => {
 
   try {
     const userId = req.user.id;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayObj = new Date();
+    todayObj.setHours(0, 0, 0, 0);
+    const today = formatDateToYMD(todayObj);
 
     const dailyLog = await DailyWellness.findOne({ user: userId, date: today });
     if (!dailyLog) {
@@ -178,11 +199,15 @@ exports.getWellness = async (req, res) => {
   }
 
   try {
+    // convert startDate/endDate to YYYY-MM-DD strings for string comparison
+    const startDateStr = formatDateToYMD(startDate);
+    const endDateStr = formatDateToYMD(endDate);
+
     const trends = await DailyWellness.find({
       user: req.user.id,
       date: {
-        $gte: startDate,
-        $lte: endDate
+        $gte: startDateStr,
+        $lte: endDateStr
       }
     })
       .sort({ date: 'asc' })
@@ -192,8 +217,8 @@ exports.getWellness = async (req, res) => {
       success: true,
       query: {
         period: period || 'custom',
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
+        startDate: startDateStr,
+        endDate: endDateStr
       },
       count: trends.length,
       data: trends

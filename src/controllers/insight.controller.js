@@ -2,6 +2,14 @@ const Insight = require('../models/insight.model.js');
 const Album = require('../models/album.model.js');
 const mongoose = require('mongoose');
 
+// Helper to format Date object to YYYY-MM-DD
+function formatDateToYMD(d) {
+  const year = d.getFullYear();
+  const month = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * @desc    Get or create insight for a date (random 3 albums)
  * @route   GET /api/insight?date=YYYY-MM-DD
@@ -27,8 +35,9 @@ exports.getInsight = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid date parts' });
     }
 
-    const targetDate = new Date(year, month, day);
-    targetDate.setHours(0, 0, 0, 0);
+    const targetDateObj = new Date(year, month, day);
+    targetDateObj.setHours(0, 0, 0, 0);
+    const targetDate = formatDateToYMD(targetDateObj);
 
     const userId = req.user.id;
 

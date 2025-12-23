@@ -4,13 +4,13 @@ const Schema = mongoose.Schema;
 
 // Schema cho một lần log cụ thể (sub-document)
 const logEntrySchema = new Schema({
-  mood: { 
+  mood: {
     type: Number,
     required: true,
     min: 1,
     max: 10
   },
-  energy: { 
+  energy: {
     type: Number,
     required: true,
     min: 0,
@@ -22,7 +22,7 @@ const logEntrySchema = new Schema({
     min: 1,
     max: 10
   },
-  sleep: { 
+  sleep: {
     type: Number,
     required: true,
     min: 0,
@@ -40,12 +40,12 @@ const dailyWellnessSchema = new Schema({
     ref: 'User',
     required: true
   },
-  date: { 
-    type: Date,
+  date: {
+    type: String,
     required: true
   },
-  logs: [logEntrySchema], 
-  averages: { 
+  logs: [logEntrySchema],
+  averages: {
     mood: { type: Number, default: 0 },
     energy: { type: Number, default: 0 },
     stress: { type: Number, default: 0 },
@@ -57,7 +57,7 @@ const dailyWellnessSchema = new Schema({
     max: 3
   }
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
 dailyWellnessSchema.index({ user: 1, date: 1 }, { unique: true });
