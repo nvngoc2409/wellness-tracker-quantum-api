@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    googleId: { type: String, required: true, unique: true },
-    email: { type: String, required: true },
+    googleId: { type: String, },
+    email: { type: String },
     name: { type: String },
     avatar: { type: String },
     subscription: {
@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       ref: "Subscription",
       default: null,
     },
+    deviceId: { type: String }
   },
   { timestamps: true }
 );
