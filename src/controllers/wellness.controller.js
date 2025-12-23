@@ -246,15 +246,25 @@ exports.getWellness = async (req, res) => {
     const startDateStr = formatDateToYMD(startDate);
     const endDateStr = formatDateToYMD(endDate);
 
-    const trends = await DailyWellness.find({
+    const isSameDate = startDateStr == endDateStr;
+
+    // Build query; if single date requested, populate the album object
+    let query = DailyWellness.find({
       user: req.user.id,
       date: {
         $gte: startDateStr,
         $lte: endDateStr
       }
     })
-      .sort({ date: 'asc' })
-      .select('date averages');
+      .sort({ date: 'asc' });
+
+    if (isSameDate) {
+      query = query.select('date logs album').populate({ path: 'album', select: '_id name cover_image description tracks subcategories' });
+    } else {
+      query = query.select('date logs');
+    }
+
+    const trends = await query.exec();
 
     res.status(200).json({
       success: true,
