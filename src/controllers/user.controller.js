@@ -1,4 +1,7 @@
 const { default: userModel } = require("../models/user.model");
+const DailyWellness = require("../models/dailyWellness.model");
+const Insight = require("../models/insight.model");
+const { default: subscriptionModel } = require("../models/subscription.model");
 
 /**
  * @desc    
@@ -40,6 +43,33 @@ exports.updateUserProfile = async (req, res) => {
       res.status(200).json({
         success: true,
         data: updatedUser,
+      });
+    } else {
+      res.status(404).json({ success: false, error: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+/**
+ * @desc   
+ * @route   DELETE /api/users/profile
+ * @access  Private 
+ */
+exports.deleteUserProfile = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id);
+
+    if (user) {
+      await DailyWellness.deleteMany({ user_id: req.user.id });
+      await Insight.deleteMany({ user_id: req.user.id });
+      await subscriptionModel.deleteMany({ userId: req.user.id });
+      await userModel.findByIdAndDelete(req.user.id);
+
+      res.status(200).json({
+        success: true,
       });
     } else {
       res.status(404).json({ success: false, error: 'User not found' });
