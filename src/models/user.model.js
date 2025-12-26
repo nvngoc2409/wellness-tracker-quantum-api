@@ -11,7 +11,9 @@ const userSchema = new mongoose.Schema(
       ref: "Subscription",
       default: null,
     },
-    deviceId: { type: String }
+    deviceId: { type: String },
+    quantumSessionsCount: { type: Number, default: 0 },
+    lastQuantumSessionDate: { type: String, default: null },
   },
   { timestamps: true }
 );
