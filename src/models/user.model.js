@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     googleId: { type: String, },
+    appleId: { type: String },
     email: { type: String },
     name: { type: String },
     avatar: { type: String },
