@@ -43,7 +43,6 @@ function getKey(header, callback) {
 }
 
 export const verifyAppleToken = (idToken) => {
-  const secretKey = generateAppleClientSecret();
   return new Promise((resolve, reject) => {
     jwt.verify(
       idToken,
