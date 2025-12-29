@@ -1,5 +1,6 @@
 const Category = require('../models/category.model.js');
-require('../models/subcategory.model.js'); 
+const Album = require('../models/album.model.js');
+require('../models/subcategory.model.js');
 
 /**
  * @desc    Lấy tất cả các category và populate các subcategory liên quan
@@ -22,10 +23,20 @@ exports.getAllCategories = async (req, res) => {
       }
     });
 
+    // find subcategory ids that are actually used by any album
+    const usedSubcategoryIds = await Album.distinct('subcategories.subcategory');
+    const usedSet = new Set(usedSubcategoryIds.map(id => String(id)));
+
+    // filter out categories which have no subcategory linked to any album
+    const filteredCategories = categories.filter(category => {
+      if (!category.subcategories || category.subcategories.length === 0) return false;
+      return category.subcategories.some(sc => usedSet.has(String(sc.subcategory._id)));
+    });
+
     res.status(200).json({
       success: true,
-      count: categories.length,
-      data: categories,
+      count: filteredCategories.length,
+      data: filteredCategories,
     });
   } catch (error) {
     console.error(error);
