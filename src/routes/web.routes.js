@@ -3,11 +3,11 @@ import express from "express";
 const router = express.Router();
 
 router.get("/privacy", (req, res) => {
-  res.render("privacy", { title: "Privacy Policy" });
+  res.render("privacy", { title: "Privacy Policy of WellQ app" });
 });
 
 router.get("/terms", (req, res) => {
-  res.render("terms", { title: "Terms of Service" });
+  res.render("terms", { title: "Terms and Conditions of WellQ app" });
 });
 
 router.get("/contact-form", (req, res) => {
