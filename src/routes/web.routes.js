@@ -6,6 +6,10 @@ router.get("/privacy", (req, res) => {
   res.render("privacy", { title: "Privacy Policy of Wellness Tracker ft Quantum" });
 });
 
+router.get("/privacy_terms", (req, res) => {
+  res.render("privacy_terms", { title: "Privacy Policy and Terms Conditions" });
+});
+
 router.get("/terms", (req, res) => {
   res.render("terms", { title: "Terms and Condition of Wellness Tracker ft Quantum" });
 });
