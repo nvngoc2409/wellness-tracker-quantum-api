@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
-import Image from "next/image"
+
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -14,7 +15,7 @@ export function Header() {
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-              <Image className="object-cover rounded-xl" width={40} height={40} src="/images/app-icon.png" alt="WellQ App Icon"  />
+            <Image src="/images/app-icon.png" alt="WellQ App Icon" width={40} height={40} className="rounded-xl" />
             <span className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
               WellQ
             </span>

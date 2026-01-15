@@ -20,8 +20,8 @@ export default function LandingPage() {
         <HowItWorksSection />
         <ScreenshotsSection />
         <TestimonialsSection />
-        <DownloadSection />
         <ContactSection />
+        <DownloadSection />
         <Footer />
       </div>
     </main>

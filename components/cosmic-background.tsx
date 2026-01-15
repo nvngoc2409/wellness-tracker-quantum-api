@@ -1,4 +1,18 @@
+"use client"
+
+import { useMemo } from "react"
+
 export function CosmicBackground() {
+  const stars = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: `${(i * 17 + 3) % 100}%`,
+      top: `${(i * 23 + 7) % 100}%`,
+      delay: `${(i % 3) * 1}s`,
+      opacity: 0.3 + (i % 7) * 0.1,
+    }))
+  }, [])
+
   return (
     <div className="fixed inset-0 z-0 overflow-hidden">
       {/* Base gradient */}
@@ -15,17 +29,17 @@ export function CosmicBackground() {
         style={{ animationDelay: "1s" }}
       />
 
-      {/* Stars */}
+      {/* Stars - using deterministic positions */}
       <div className="absolute inset-0">
-        {[...Array(50)].map((_, i) => (
+        {stars.map((star) => (
           <div
-            key={i}
+            key={star.id}
             className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.7 + 0.3,
+              left: star.left,
+              top: star.top,
+              animationDelay: star.delay,
+              opacity: star.opacity,
             }}
           />
         ))}
