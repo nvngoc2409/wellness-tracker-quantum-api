@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
   // Android App link
   alternates: {
-    other: {
+    types: {
       "android-app": "android-app://com.wellquantum",
     },
   },
