@@ -19,21 +19,8 @@ export const metadata: Metadata = {
     "Transform your well-being with WellQ, an intelligent wellness companion that uses advanced AI analysis to provide personalized audio therapy recommendations.",
   generator: "v0.app",
   icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
+    icon: "/images/app-icon.png",
+    apple: "/images/app-icon.png",
   },
 }
 
