@@ -67,7 +67,7 @@ export function FeaturesSection() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-purple-500/50 transition-all duration-300"
+              className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-purple-900/50 hover:border-purple-500/50 transition-all duration-300"
             >
               {/* Icon */}
               <div

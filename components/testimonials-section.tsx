@@ -46,7 +46,7 @@ export function TestimonialsSection() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-purple-500/30 transition-colors"
+              className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-purple-900/50 hover:border-purple-500/30 transition-colors"
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
@@ -56,7 +56,7 @@ export function TestimonialsSection() {
               </div>
 
               {/* Content */}
-              <p className="text-muted-foreground mb-6 leading-relaxed">"{testimonial.content}"</p>
+              <p className="text-muted-foreground mb-6 leading-relaxed">&quot;{testimonial.content}&quot;</p>
 
               {/* Author */}
               <div className="flex items-center gap-3">

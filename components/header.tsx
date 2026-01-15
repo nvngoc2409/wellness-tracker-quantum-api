@@ -10,7 +10,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/30 border-b border-border/50">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/30 border-b border-purple-900/50">
       <div className="container mx-auto px-4 py-4">
         <nav className="flex items-center justify-between">
           {/* Logo */}
@@ -54,9 +54,9 @@ export function Header() {
           </button>
         </nav>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Replace border-border/50 with border-purple-900/50 */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-border/50 pt-4">
+          <div className="md:hidden mt-4 pb-4 border-t border-purple-900/50 pt-4">
             <div className="flex flex-col gap-4">
               <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 Features

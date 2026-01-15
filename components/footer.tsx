@@ -3,7 +3,7 @@ import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 py-12">
+    <footer className="border-t border-purple-900/50 py-12">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -118,8 +118,8 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="border-t border-border/50 mt-12 pt-8 text-center text-muted-foreground text-sm">
+        {/* Copyright - Replace border-border/50 with border-purple-900/50 */}
+        <div className="border-t border-purple-900/50 mt-12 pt-8 text-center text-muted-foreground text-sm">
           © {new Date().getFullYear()} WellQ. All rights reserved.
         </div>
       </div>

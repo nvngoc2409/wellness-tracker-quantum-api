@@ -42,7 +42,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-border/50 bg-white/5 hover:bg-white/10 gap-3 h-14 px-6"
+                className="border-purple-900/50 bg-white/5 hover:bg-white/10 gap-3 h-14 px-6"
                 asChild
               >
                 <a href="https://play.google.com/" target="_blank" rel="noopener noreferrer">
@@ -55,18 +55,18 @@ export function HeroSection() {
               </Button>
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center justify-center lg:justify-start gap-8 mt-10 pt-10 border-t border-border/30">
+            {/* Stats - Replace border-border/30 with border-purple-900/30 */}
+            <div className="flex items-center justify-center lg:justify-start gap-8 mt-10 pt-10 border-t border-purple-900/30">
               <div>
                 <div className="text-2xl font-bold text-white">50K+</div>
                 <div className="text-sm text-muted-foreground">Active Users</div>
               </div>
-              <div className="w-px h-10 bg-border/30" />
+              <div className="w-px h-10 bg-purple-900/30" />
               <div>
                 <div className="text-2xl font-bold text-white">4.9</div>
                 <div className="text-sm text-muted-foreground">App Rating</div>
               </div>
-              <div className="w-px h-10 bg-border/30" />
+              <div className="w-px h-10 bg-purple-900/30" />
               <div>
                 <div className="text-2xl font-bold text-white">100+</div>
                 <div className="text-sm text-muted-foreground">Audio Tracks</div>
