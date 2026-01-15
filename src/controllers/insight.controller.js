@@ -11,6 +11,19 @@ function formatDateToYMD(d) {
   return `${year}-${month}-${day}`;
 }
 
+const relaxKeywords = [
+  "relax",
+  "calm",
+  "chill",
+  "peace",
+  "tranquil",
+  "serene",
+  "soft",
+  "slow",
+  "gentle",
+  "ambient",
+]
+
 /**
  * @desc    Get or create insight for a date (random 3 albums)
  * @route   GET /api/insight?date=YYYY-MM-DD
@@ -104,10 +117,25 @@ exports.getInsight = async (req, res) => {
     const latest = await Insight.findOne({ user_id: userId, date: { $lt: targetDate } }).sort({ date: -1 }).select('albums');
     const excludeIds = latest && latest.albums ? latest.albums : [];
 
-    // 3) Try to sample 3 random albums excluding the latest albums
+    // Build filter for albums with relaxKeywords in title or description
+    // Match albums where name OR description contains any of the relaxKeywords
+    const keywordConditions = [];
+    for (const keyword of relaxKeywords) {
+      keywordConditions.push({ name: { $regex: keyword, $options: 'i' } });
+      keywordConditions.push({ description: { $regex: keyword, $options: 'i' } });
+    }
+    const relaxKeywordMatch = { $or: keywordConditions };
+
+    // 3) Try to sample 3 random albums excluding the latest albums and matching relaxKeywords
     let sampled = [];
     try {
-      const match = (excludeIds && excludeIds.length) ? { _id: { $nin: excludeIds } } : {};
+      const matchConditions = [relaxKeywordMatch];
+
+      if (excludeIds && excludeIds.length) {
+        matchConditions.push({ _id: { $nin: excludeIds } });
+      }
+
+      const match = { $and: matchConditions };
       sampled = await Album.aggregate([
         { $match: match },
         { $sample: { size: 3 } }
@@ -116,9 +144,10 @@ exports.getInsight = async (req, res) => {
       sampled = [];
     }
 
-    // If not enough results (e.g., excluded too many), sample without exclusion
+    // If not enough results (e.g., excluded too many), sample without exclusion but still with relaxKeywords filter
     if (!sampled || sampled.length < 3) {
       sampled = await Album.aggregate([
+        { $match: relaxKeywordMatch },
         { $sample: { size: 3 } }
       ]);
     }
