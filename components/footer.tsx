@@ -1,7 +1,25 @@
+"use client"
+
 import Link from "next/link"
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
+import React from "react"
 
 export function Footer() {
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+
+    const targetId = href.replace("#", "")
+    const element = document.getElementById(targetId)
+
+    if (element) {
+      const offsetTop = element.getBoundingClientRect().top + window.scrollY - 80
+      window.scrollTo({
+        top: offsetTop,
+        behavior: "smooth",
+      })
+    }
+  }
+
   return (
     <footer className="border-t border-purple-900/50 py-12">
       <div className="container mx-auto px-4">
@@ -27,40 +45,17 @@ export function Footer() {
                 WellQ
               </span>
             </Link>
+
             <p className="text-muted-foreground max-w-sm leading-relaxed">
               Transform your well-being with AI-powered wellness tracking and quantum audio therapy.
             </p>
 
-            {/* Social Links */}
+            {/* Social */}
             <div className="flex gap-4 mt-6">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram size={20} />
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={20} />
-              </a>
+              <a className="text-muted-foreground hover:text-foreground"><Facebook size={20} /></a>
+              <a className="text-muted-foreground hover:text-foreground"><Twitter size={20} /></a>
+              <a className="text-muted-foreground hover:text-foreground"><Instagram size={20} /></a>
+              <a className="text-muted-foreground hover:text-foreground"><Linkedin size={20} /></a>
             </div>
           </div>
 
@@ -69,23 +64,22 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">Product</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="#features" onClick={(e) => handleScroll(e, "#features")} className="text-muted-foreground hover:text-foreground">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="#how-it-works" onClick={(e) => handleScroll(e, "#how-it-works")} className="text-muted-foreground hover:text-foreground">
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="#download" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  href="#download"
+                  onClick={(e) => handleScroll(e, "#download")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   Download
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Pricing
                 </Link>
               </li>
             </ul>
@@ -94,31 +88,14 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4">Support</h4>
             <ul className="space-y-3">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Contact Us
-                </Link>
-              </li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Help Center</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
             </ul>
           </div>
         </div>
 
-        {/* Copyright - Replace border-border/50 with border-purple-900/50 */}
         <div className="border-t border-purple-900/50 mt-12 pt-8 text-center text-muted-foreground text-sm">
           © {new Date().getFullYear()} WellQ. All rights reserved.
         </div>

@@ -1,4 +1,5 @@
 import { Brain, BarChart3, Headphones, Bell, Sparkles, Heart } from "lucide-react"
+import { AnimatedSection } from "./animated-section"
 
 const features = [
   {
@@ -65,6 +66,7 @@ export function FeaturesSection() {
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
+            <AnimatedSection key={index} animation="fade-up" delay={index * 100}>
             <div
               key={index}
               className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-purple-900/50 hover:border-purple-500/50 transition-all duration-300"
@@ -80,6 +82,7 @@ export function FeaturesSection() {
               <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>
