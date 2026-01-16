@@ -8,6 +8,7 @@ import { DownloadSection } from "@/components/download-section"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 import { CosmicBackground } from "@/components/cosmic-background"
+import { BackToTop } from "@/components/back-to-top"
 
 export default function LandingPage() {
   return (
@@ -24,6 +25,7 @@ export default function LandingPage() {
         <DownloadSection />
         <Footer />
       </div>
+      <BackToTop />
     </main>
   )
 }

@@ -43,16 +43,16 @@ export function AnimatedSection({
       visible: "opacity-100",
     },
     "fade-left": {
-      initial: "opacity-0 -translate-x-10",
+      initial: "opacity-0 -translate-x-20",
       visible: "opacity-100 translate-x-0",
     },
     "fade-right": {
-      initial: "opacity-0 translate-x-10",
+      initial: "opacity-0 translate-x-20",
       visible: "opacity-100 translate-x-0",
     },
     scale: {
-      initial: "opacity-0 scale-95",
-      visible: "opacity-100 scale-100",
+      initial: "opacity-0 scale-80",
+      visible: "opacity-100 scale-110",
     },
   } as const
 

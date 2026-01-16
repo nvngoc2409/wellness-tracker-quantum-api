@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,8 @@ import { Menu, X } from "lucide-react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
@@ -24,9 +26,51 @@ export function Header() {
     }
     setIsMenuOpen(false)
   }
+  useEffect(() => {
+    const controlNavbar = () => {
+      const currentScrollY = window.scrollY
 
+      // Nếu scroll xuống và scroll > 100px thì ẩn header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false)
+      } 
+      // Nếu scroll lên thì hiện header
+      else if (currentScrollY < lastScrollY) {
+        setIsVisible(true)
+      }
+      
+      // Nếu ở top của page thì luôn hiện
+      if (currentScrollY <= 10) {
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    // Throttle scroll event để tối ưu performance
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          controlNavbar()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [lastScrollY])
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/30 border-b border-purple-900/50">
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/30 border-b border-purple-900/50 transition-transform duration-300 ease-in-out ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}
+    >
       <div className="container mx-auto px-4 py-4">
         <nav className="flex items-center justify-between">
           {/* Logo */}

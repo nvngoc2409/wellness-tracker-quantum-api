@@ -65,7 +65,7 @@ export function ScreenshotsSection() {
                       )}
 
                       <div className="relative w-full h-full bg-gray-900 border-4 border-gray-800 rounded-[2rem] overflow-hidden">
-                        <Image src={s.image} alt={s.title} fill className="object-cover" />
+                        <Image src={s.image} alt={s.title} fill sizes="auto" className="object-cover" />
                       </div>
                     </div>
                   </div>
