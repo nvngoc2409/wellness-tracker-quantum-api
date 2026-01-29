@@ -75,7 +75,7 @@ export function Header() {
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/images/app-icon.png" alt="WellQ App Icon" width={40} height={40} className="rounded-xl" />
+            <Image src="/images/icons/wellq_icon_2.jpg" alt="WellQ App Icon" width={40} height={40} className="rounded-xl" />
             <span className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
               WellQ
             </span>
@@ -102,7 +102,7 @@ export function Header() {
               onClick={(e) => handleScroll(e, "#screenshots")}
               className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              Screenshots
+              Screens
             </a>
             <a
               href="#contact"

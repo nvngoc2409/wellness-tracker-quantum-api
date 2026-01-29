@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   generator: "v0.app",
 
   icons: {
-    icon: "/images/app-icon.png",
-    apple: "/images/app-icon.png",
+    icon: "/images/icons/wellq_icon_2.jpg",
+    apple: "/images/icons/wellq_icon_2.jpg",
   },
 
   // iOS Smart App Banner

@@ -89,9 +89,10 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">Support</h4>
             <ul className="space-y-3">
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Help Center</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link href="https://wellq.smexapp.com/privacy" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
+              <li><Link href="#download"
+                  onClick={(e) => handleScroll(e, "#download")} className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
             </ul>
           </div>
         </div>

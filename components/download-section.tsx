@@ -34,7 +34,7 @@ export function DownloadSection() {
               <div className="relative">
                 <div className="absolute -inset-8 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-cyan-600/30 rounded-full blur-3xl animate-pulse-glow" />
                 <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/10">
-                  <Image src="/images/app-icon.png" alt="WellQ App Icon" fill className="object-cover" />
+                  <Image src="/images/icons/wellq_icon_2.jpg" alt="WellQ App Icon" fill className="object-cover" />
                 </div>
               </div>
             </div>

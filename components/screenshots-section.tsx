@@ -1,102 +1,209 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { AnimatedSection } from "@/components/animated-section"
 
 const ITEM_WIDTH = 260
-const GAP = 24 // gap-6 = 24px
+const GAP = 24
+const AUTO_PLAY_INTERVAL = 4000
+const RESTART_DELAY = 6000
 
-const screenshots = [
-  { id: 1, title: "Goals & Insights", description: "AI-powered wellness", image: "/images/1.webp" },
-  { id: 2, title: "Scalar Energy", description: "Healing frequencies", image: "/images/2.webp" },
-  { id: 3, title: "Quantum Therapy", description: "Healing sessions", image: "/images/3.webp" },
-  { id: 4, title: "Audio Player", description: "Immersive playback", image: "/images/4.png" },
-]
+interface Screenshot {
+  id: number
+  image: string
+}
+
+/**
+ * Tính offset ngắn nhất trong carousel vòng tròn
+ */
+function getShortestOffset(
+  target: number,
+  current: number,
+  total: number
+) {
+  const forward = (target - current + total) % total
+  const backward = forward - total
+
+  return Math.abs(forward) <= Math.abs(backward)
+    ? forward
+    : backward
+}
 
 export function ScreenshotsSection() {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [containerWidth, setContainerWidth] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [screenshots, setScreenshots] = useState<Screenshot[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isInitialized, setIsInitialized] = useState(false)
 
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null)
+
+  /* ================= FETCH DATA ================= */
   useEffect(() => {
-    if (!containerRef.current) return
-
-    const updateWidth = () => {
-      setContainerWidth(containerRef.current!.offsetWidth)
-    }
-
-    updateWidth()
-    window.addEventListener("resize", updateWidth)
-    return () => window.removeEventListener("resize", updateWidth)
+    fetch("/api/screenshots")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setScreenshots(data)
+          setIsInitialized(true)
+        }
+      })
+      .catch(err => console.error(err))
   }, [])
 
-  const translateX =
-    containerWidth / 2 -
-    ITEM_WIDTH / 2 -
-    activeIndex * (ITEM_WIDTH + GAP)
+  /* ================= AUTOPLAY ================= */
+  const clearTimers = useCallback(() => {
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current)
+      autoPlayRef.current = null
+    }
+  }, [])
 
+  const startAutoPlay = useCallback(() => {
+    clearTimers()
+    if (screenshots.length <= 1 || !isInitialized) return
+
+    autoPlayRef.current = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % screenshots.length)
+    }, AUTO_PLAY_INTERVAL)
+  }, [screenshots.length, isInitialized, clearTimers])
+
+  useEffect(() => {
+    startAutoPlay()
+    return () => clearTimers()
+  }, [startAutoPlay, clearTimers])
+
+  const goToIndex = useCallback(
+    (newIndex: number, fromUser = false) => {
+      clearTimers()
+      setCurrentIndex(newIndex)
+
+      if (fromUser) {
+        setTimeout(startAutoPlay, RESTART_DELAY)
+      }
+    },
+    [clearTimers, startAutoPlay]
+  )
+
+  /* ================= VISIBLE ITEMS ================= */
+  const getVisibleScreenshots = () => {
+    const total = screenshots.length
+    if (!total) return []
+
+    const itemsToShow = Math.min(5, total)
+    const sideCount = Math.floor(itemsToShow / 2)
+
+    return screenshots
+      .map((item, index) => {
+        const offset = getShortestOffset(index, currentIndex, total)
+        return {
+          ...item,
+          originalIndex: index,
+          offset,
+        }
+      })
+      .filter(item => Math.abs(item.offset) <= sideCount)
+  }
+
+  const visibleItems = getVisibleScreenshots()
+
+  if (!isInitialized) {
+    return (
+      <section className="py-20 text-center text-muted-foreground">
+        Screens not found.
+      </section>
+    )
+  }
+
+  /* ================= RENDER ================= */
   return (
-    <section id="screenshots" className="py-20 lg:py-32 overflow-hidden">
+    <section
+      id="screenshots"
+      className="py-20 lg:py-32 overflow-hidden"
+    >
       <div className="container mx-auto px-4">
-        <AnimatedSection animation="scale">
-          <div ref={containerRef} className="relative overflow-hidden">
-            {/* Track */}
-            <div
-              className="flex flex-nowrap gap-6 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-              style={{ transform: `translateX(${translateX}px)` }}
-            >
-              {screenshots.map((s, index) => {
-                const isActive = index === activeIndex
+        <AnimatedSection animation="scale" className="text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              WellQ screens
+            </span>
+          </h2>
+          <div className="relative">
+            {/* CAROUSEL */}
+            <div className="relative h-[560px] flex justify-center items-center">
+              {visibleItems.map(item => {
+                const abs = Math.abs(item.offset)
+
+                const scale =
+                  abs === 0 ? 1 : abs === 1 ? 0.82 : 0.68
+
+                const opacity =
+                  abs === 0 ? 1 : abs === 1 ? 0.65 : 0.4
+
+                const translateX =
+                  item.offset * (ITEM_WIDTH + GAP)
 
                 return (
                   <div
-                    key={s.id}
+                    key={`${item.id}-${item.originalIndex}`}
                     className={cn(
-                      "shrink-0 cursor-pointer transition-all duration-500",
-                      isActive ? "scale-100 opacity-100" : "scale-90 opacity-40",
+                      "absolute cursor-pointer select-none",
+                      "will-change-transform",
+                      abs === 0 && "z-20"
                     )}
-                    onClick={() => setActiveIndex(index)}
+                    style={{
+                      width: ITEM_WIDTH,
+                      transform: `
+                        translateX(${translateX}px)
+                        scale(${scale})
+                      `,
+                      opacity,
+                      transition: `
+                        transform 700ms cubic-bezier(0.22,1,0.36,1),
+                        opacity 500ms ease-out
+                      `,
+                    }}
+                    onClick={() =>
+                      item.originalIndex !== currentIndex &&
+                      goToIndex(item.originalIndex, true)
+                    }
                   >
-                    <div className="relative w-[260px] h-[520px] rounded-[2rem] overflow-hidden shadow-2xl">
-                      {isActive && (
-                        <div className="absolute -inset-2 bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-cyan-600/40 rounded-[2.5rem] blur-xl" />
+                    <div className="relative w-full aspect-[9/19] max-h-[520px] rounded-[2.5rem] overflow-hidden bg-black border-8 border-gray-800 shadow-2xl">
+                      {/* Glow cho item active */}
+                      {abs === 0 && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-pink-500/30 to-cyan-500/30 blur-2xl -z-10 animate-pulse-slow" />
                       )}
 
-                      <div className="relative w-full h-full bg-gray-900 border-4 border-gray-800 rounded-[2rem] overflow-hidden">
-                        <Image src={s.image} alt={s.title} fill sizes="auto" className="object-cover" />
-                      </div>
+                      <Image
+                        src={item.image}
+                        alt={`Screenshot ${item.id}`}
+                        fill
+                        sizes="260px"
+                        className="object-cover"
+                        priority={abs === 0}
+                        draggable={false}
+                      />
                     </div>
                   </div>
                 )
               })}
             </div>
 
-            {/* Dots */}
-            <div className="flex justify-center gap-3 mt-8">
-              {screenshots.map((_, index) => (
+            {/* DOTS */}
+            <div className="flex justify-center gap-3 mt-10">
+              {screenshots.map((_, idx) => (
                 <button
-                  key={index}
-                  onClick={() => setActiveIndex(index)}
+                  key={idx}
+                  onClick={() => goToIndex(idx, true)}
                   className={cn(
-                    "transition-all duration-300",
-                    index === activeIndex
-                      ? "w-8 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                      : "w-2 h-2 rounded-full bg-muted-foreground/30",
+                    "rounded-full transition-all duration-300",
+                    idx === currentIndex
+                      ? "w-10 h-3 bg-gradient-to-r from-purple-500 to-pink-500"
+                      : "w-3 h-3 bg-gray-500/40 hover:bg-gray-400/60"
                   )}
+                  aria-label={`Screenshot ${idx + 1}`}
                 />
               ))}
-            </div>
-
-            {/* Info */}
-            <div className="text-center mt-6">
-              <h3 className="text-xl font-semibold text-white">
-                {screenshots[activeIndex].title}
-              </h3>
-              <p className="text-muted-foreground">
-                {screenshots[activeIndex].description}
-              </p>
             </div>
           </div>
         </AnimatedSection>
