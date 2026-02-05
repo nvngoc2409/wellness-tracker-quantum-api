@@ -126,7 +126,7 @@ exports.getInsight = async (req, res) => {
     }
     const relaxKeywordMatch = { $or: keywordConditions };
 
-    // 3) Try to sample 3 random albums excluding the latest albums and matching relaxKeywords
+    // 3) Try to sample 6 random albums excluding the latest albums and matching relaxKeywords
     let sampled = [];
     try {
       const matchConditions = [relaxKeywordMatch];
@@ -138,22 +138,22 @@ exports.getInsight = async (req, res) => {
       const match = { $and: matchConditions };
       sampled = await Album.aggregate([
         { $match: match },
-        { $sample: { size: 3 } }
+        { $sample: { size: 6 } }
       ]);
     } catch (e) {
       sampled = [];
     }
 
     // If not enough results (e.g., excluded too many), sample without exclusion but still with relaxKeywords filter
-    if (!sampled || sampled.length < 3) {
+    if (!sampled || sampled.length < 6) {
       sampled = await Album.aggregate([
         { $match: relaxKeywordMatch },
-        { $sample: { size: 3 } }
+        { $sample: { size: 6 } }
       ]);
     }
 
-    // Ensure we have up to 3 unique albums
-    const finalAlbums = sampled.slice(0, 3);
+    // Ensure we have up to 6 unique albums
+    const finalAlbums = sampled.slice(0, 6);
 
     // attach categories to each album
     const albumsRaw = finalAlbums.map(a => a.toObject ? a.toObject() : a);
